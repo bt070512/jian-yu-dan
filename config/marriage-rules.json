@@ -1,0 +1,99 @@
+{
+  "$schema": "剑与丹·婚姻结局规则 v1",
+  "_comment": "本文件声明婚姻结局与其它结局的相容/互斥关系、触发条件与唯一配偶锁定规则。运行时通过 config-data.js 内联进 window.GAME_CONFIG.marriage 读取，本文件为人类可读的配置交付物（可直接修改后用 config-data.js 同步）。",
+
+  "enabled": true,
+
+  "thresholds": {
+    "_comment": "婚姻特殊事件的好感触发阈值。原「成婚节点」逻辑（_married_ready，好感≥85）保留为向后兼容回退。",
+    "marriageAffection": 90,
+    "legacyReadyAffection": 85,
+    "postponeRetryYears": 3
+  },
+
+  "trigger": {
+    "_comment": "婚姻特殊事件(marry)的触发条件，需全部满足。由 engine.eligibleMarriageEvents() 实现。",
+    "requireAffectionAtLeast": 100,
+    "requireFlag": "{char}_married_ready",
+    "requireNotLocked": true,
+    "requireNotDone": true,
+    "requireMet": true,
+    "priority": 900,
+    "season": null,
+    "fixedSeason": null,
+    "_seasonNote": "season:null 表示「任意季节均可触发」；婚姻事件不受季节过滤影响。",
+    "weight": 20,
+    "once": true
+  },
+
+  "branch": {
+    "_comment": "选项分支判定。只有 choice.isMarriageAccept=true 的「同意」分支才写入 spouse_id 并进入婚姻结局；其余分支一律不成立婚姻。",
+    "acceptFlag": "isMarriageAccept",
+    "acceptSets": {
+      "spouse_id": "{char}",
+      "marriageLocked": true
+    },
+    "rejectLeavesLockedUntouched": true,
+    "firstAgreeWins": true,
+    "_firstAgreeWinsNote": "多角色同时达到 100 时，以本周目第一个触发婚姻事件并选择「同意」的角色为唯一配偶；此后 marriageLocked=true，其余角色婚姻事件不再触发（由 requireNotLocked 保证）。"
+  },
+
+  "lock": {
+    "_comment": "单周目唯一配偶限制。spouse_id 为唯一配偶字段；marriageLocked 为全局锁；marriageDone 记录已走完婚姻流程的角色，防止同一角色重复触发。",
+    "spouseField": "spouse_id",
+    "lockField": "marriageLocked",
+    "doneField": "marriageDone",
+    "resetOnNewLife": true
+  },
+
+  "compatibility": {
+    "_comment": "婚姻结局(marry_*)与其它结局的关系。priority 越高越先判定；incompatible 表示同周目不可能共存（判定时高优先级直接覆盖）。",
+    "priority": [
+      { "id": "return_mortal_*", "priority": 0, "relation": "overrides_marriage", "note": "归凡线（主动散功）覆盖一切，含婚姻" },
+      { "id": "immortal_ascend", "priority": 1, "relation": "overrides_marriage", "note": "飞升：登顶线高于婚姻" },
+      { "id": "sword_god", "priority": 1, "relation": "overrides_marriage", "note": "剑仙：登顶线高于婚姻" },
+      { "id": "returned_past", "priority": 1, "relation": "overrides_marriage", "note": "回到过去：登顶线高于婚姻" },
+      { "id": "marry_herb", "priority": 2, "relation": "marriage", "spouse": "herb" },
+      { "id": "marry_sister", "priority": 2, "relation": "marriage", "spouse": "sister" },
+      { "id": "marry_third", "priority": 2, "relation": "marriage", "spouse": "third" },
+      { "id": "hermit_life", "priority": 3, "relation": "overridden_by_marriage", "note": "归隐：若已确立婚姻则取婚姻结局" },
+      { "id": "dual_immortal", "priority": 3, "relation": "overridden_by_marriage" },
+      { "id": "happy_ending", "priority": 3, "relation": "overridden_by_marriage" },
+      { "id": "demon_path", "priority": 3, "relation": "mutually_exclusive", "note": "魔道：心性崩塌线与婚姻互斥（婚姻要求好感 100，心性崩坏时通常无法达成）" },
+      { "id": "avenged", "priority": 3, "relation": "mutually_exclusive" },
+      { "id": "lonely_sword", "priority": 3, "relation": "mutually_exclusive" },
+      { "id": "dan_master", "priority": 3, "relation": "mutually_exclusive" },
+      { "id": "young_death", "priority": 3, "relation": "mutually_exclusive" },
+      { "id": "ordinary_death", "priority": 3, "relation": "mutually_exclusive" }
+    ],
+    "incompatible": [
+      ["marry_herb", "marry_sister"],
+      ["marry_herb", "marry_third"],
+      ["marry_sister", "marry_third"],
+      ["marry_*", "demon_path"],
+      ["marry_*", "young_death"],
+      ["marry_*", "ordinary_death"]
+    ],
+    "coexistAllowed": [
+      ["marry_*", "return_mortal_*"],
+      ["marry_*", "happy_ending"]
+    ],
+    "_coexistNote": "return_mortal_* 优先级高于婚姻，同时满足时取归凡线；happy_ending 优先级低于婚姻，同时满足时取婚姻线。"
+  },
+
+  "validation": {
+    "_comment": "引擎启动/测试时可选的冲突校验规则。",
+    "multiCharAt100": {
+      "policy": "first_agree_wins",
+      "message": "多角色同时达到好感 100：以首个选择「同意」的角色为唯一配偶。"
+    },
+    "duplicateTrigger": {
+      "policy": "block",
+      "message": "同一角色婚姻事件在 marriageLocked 或 marriageDone 之后重复触发：直接阻止。"
+    },
+    "invalidSpouse": {
+      "policy": "ignore",
+      "message": "spouse_id 不在 ['herb','sister','third'] 中：视为无配偶。"
+    }
+  }
+}
