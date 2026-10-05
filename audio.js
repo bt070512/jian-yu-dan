@@ -2,20 +2,27 @@
    剑与丹 · 音效系统（audio.js）
    ------------------------------------------------------------
    设计原则：
-     · 零素材依赖 —— 全部音色由 Web Audio API 实时合成
+     · 音效零素材依赖 —— 全部音色由 Web Audio API 实时合成
        （OscillatorNode 振荡器 + GainNode 包络），不加载任何音频文件。
-     · 浏览器自动播放策略 —— AudioContext 必须在用户手势后解锁；
-       本模块在首次 pointerdown / keydown 时一次性 resume()。
-       解锁失败 / 不支持 Web Audio 时全部静默降级，绝不抛错阻塞游戏。
+     · 背景音乐（BGM）使用真实 mp3 素材（resources/music/），
+       按场景切换曲目；素材缺失时自动降级为合成音垫，绝不阻塞游戏。
+     · 浏览器自动播放策略 —— AudioContext / <audio> 必须在用户手势后解锁；
+       本模块在首次 pointerdown / keydown 时一次性 resume()，
+       并把待播放的 BGM 在解锁瞬间自动接上。
      · 可关闭 —— 读取 GameConfig.loadConfig().sound.enabled（默认 true）。
-       音量取 .sound.volume（默认 0.6）。
+       音量取 .sound.volume（默认 0.6），BGM 音量取 .sound.musicVolume（默认 0.35）。
    对外 API：
-     Sound.play(key)      播放一次音效
-     Sound.setEnabled(b)  运行时开关
-     Sound.setVolume(n)   运行时音量（0~1）
-     Sound.unlock()       手动解锁（通常无需调用）
-     Sound.bgm.start()    背景音乐（五声音阶循环垫底，可合成替代 BGM 缺口）
+     Sound.play(key)         播放一次音效
+     Sound.setEnabled(b)     运行时开关（同时控制音效与 BGM）
+     Sound.setVolume(n)      运行时音效音量（0~1）
+     Sound.unlock()          手动解锁（通常无需调用）
+     Sound.bgm.start()       启动背景音乐（合成垫底，无素材时的兜底）
      Sound.bgm.stop()
+     Sound.music.play(scene) 按场景播放真实 BGM：title / game / ending
+     Sound.music.stop()      停止 BGM（可带淡出）
+     Sound.music.setScene(s) 切换场景曲目（同曲不重头播）
+     Sound.music.setVolume(n)
+     Sound.music.toggle()    返回切换后的开关状态
    ============================================================ */
 
 window.Sound = (function () {
@@ -26,6 +33,7 @@ window.Sound = (function () {
   let unlocked = false;
   let _enabled = true;
   let _volume = 0.6;
+  let _musicVolume = 0.35;
 
   /* ---------- 读取配置（容错：GameConfig 未加载时用默认值） ---------- */
   function readConfig() {
@@ -35,6 +43,7 @@ window.Sound = (function () {
         if (c && c.sound) {
           if (typeof c.sound.enabled === 'boolean') _enabled = c.sound.enabled;
           if (typeof c.sound.volume === 'number') _volume = Math.max(0, Math.min(1, c.sound.volume));
+          if (typeof c.sound.musicVolume === 'number') _musicVolume = Math.max(0, Math.min(1, c.sound.musicVolume));
         }
       }
     } catch (e) { /* 静默降级 */ }
@@ -58,11 +67,12 @@ window.Sound = (function () {
   function unlock() {
     if (unlocked) return;
     const c = ensureCtx();
-    if (!c) return;
     try {
-      if (c.state === 'suspended') c.resume();
+      if (c && c.state === 'suspended') c.resume();
       unlocked = true;
     } catch (e) { /* 静默 */ }
+    // 解锁瞬间：把此前被自动播放策略拦下的 BGM 接上
+    try { if (_pendingScene && _enabled) music._playNow(_pendingScene); } catch (e) {}
   }
 
   /* ---------- 基础音元：一个振荡器 + 包络 ----------
@@ -218,6 +228,157 @@ window.Sound = (function () {
     };
   })();
 
+  /* ============================================================
+     真实背景音乐（music）—— 基于 mp3 素材的场景 BGM
+     素材目录：resources/music/
+       title  标题页  → shan-xian-yao.mp3   《仙山谣》国风
+       game   游戏中  → shan-jian-gui-ke.mp3 《山涧归客》流行
+       ending 结局页  → yun-que-ya-yue.mp3  《云阙雅乐》国风
+     行为：
+       · 循环播放，曲目切换带淡入淡出（同曲不重头播）
+       · 受 sound.enabled 总开关控制；BGM 音量独立（musicVolume）
+       · 自动播放受限时记录待播场景，首次手势解锁后自动接上
+       · 加载失败（素材缺失 / 解码错误）时自动降级到合成 bgm，绝不报错
+     ============================================================ */
+  const MUSIC_SRC = {
+    title: 'resources/music/shan-xian-yao.mp3',
+    game: 'resources/music/shan-jian-gui-ke.mp3',
+    ending: 'resources/music/yun-que-ya-yue.mp3',
+  };
+  const MUSIC_NAME = {
+    title: '《仙山谣》',
+    game: '《山涧归客》',
+    ending: '《云阙雅乐》',
+  };
+
+  let _pendingScene = null;   // 解锁前被拦下的目标场景
+
+  const music = (function () {
+    let scene = null;         // 当前场景名
+    let el = null;            // 当前 <audio> 元素
+    let failed = {};          // 记录加载失败的曲目，避免反复重试
+    let fadeTimer = null;
+
+    function makeAudio(src) {
+      const a = new Audio();
+      a.src = src;
+      a.loop = true;
+      a.preload = 'auto';
+      a.volume = 0;
+      a.addEventListener('error', () => {
+        failed[src] = true;
+        // 降级：合成音垫兜底
+        try { if (scene && _enabled) bgm.start(); } catch (e) {}
+      });
+      return a;
+    }
+
+    /* 淡入到目标音量 */
+    function fadeIn(a, target, ms) {
+      const steps = Math.max(8, Math.round(ms / 50));
+      let i = 0;
+      a.volume = 0;
+      const inc = target / steps;
+      clearInterval(fadeTimer);
+      fadeTimer = setInterval(() => {
+        i++;
+        try {
+          a.volume = Math.min(target, inc * i);
+          if (i >= steps) { a.volume = target; clearInterval(fadeTimer); fadeTimer = null; }
+        } catch (e) { clearInterval(fadeTimer); fadeTimer = null; }
+      }, 50);
+    }
+
+    /* 淡出并停止 */
+    function fadeOutAndStop(a, ms, onDone) {
+      if (!a) { if (onDone) onDone(); return; }
+      const steps = Math.max(6, Math.round(ms / 50));
+      let i = 0;
+      const start = a.volume;
+      const dec = start / steps;
+      const t = setInterval(() => {
+        i++;
+        try {
+          a.volume = Math.max(0, start - dec * i);
+          if (i >= steps) {
+            clearInterval(t);
+            a.pause();
+            try { a.currentTime = 0; } catch (e) {}
+            a.volume = 0;
+            if (onDone) onDone();
+          }
+        } catch (e) {
+          clearInterval(t);
+          if (onDone) onDone();
+        }
+      }, 50);
+    }
+
+    function playNow(sc) {
+      if (!_enabled) return;
+      const src = MUSIC_SRC[sc];
+      if (!src || failed[src]) {
+        // 素材不可用 → 合成兜底
+        try { bgm.start(); } catch (e) {}
+        return;
+      }
+      // 同曲在播：仅校正音量，不重头播
+      if (el && scene === sc && !el.paused) {
+        try { el.volume = _musicVolume; } catch (e) {}
+        return;
+      }
+      const next = makeAudio(src);
+      const p = next.play();
+      if (p && p.catch) {
+        p.catch(() => {
+          // 自动播放被拦：记录待播场景，等手势解锁
+          _pendingScene = sc;
+          try { next.pause(); } catch (e) {}
+        });
+      }
+      const old = el;
+      el = next;
+      scene = sc;
+      fadeIn(next, _musicVolume, 700);
+      if (old) fadeOutAndStop(old, 500, null);
+    }
+
+    return {
+      play(sc) {
+        _pendingScene = sc;
+        if (!unlocked) return;      // 等解锁后自动接上
+        playNow(sc);
+      },
+      stop(withFade) {
+        _pendingScene = null;
+        const a = el;
+        el = null;
+        scene = null;
+        if (withFade === false) {
+          if (a) { try { a.pause(); } catch (e) {} }
+        } else {
+          fadeOutAndStop(a, 500, null);
+        }
+        try { bgm.stop(); } catch (e) {}
+      },
+      /* 切换场景：同曲不重播 */
+      setScene(sc) {
+        if (scene === sc && el && !el.paused) return;
+        this.play(sc);
+      },
+      setVolume(n) {
+        _musicVolume = Math.max(0, Math.min(1, Number(n) || 0));
+        try { if (el) el.volume = _musicVolume; } catch (e) {}
+      },
+      getVolume() { return _musicVolume; },
+      current() { return scene; },
+      isPlaying() { return !!(el && !el.paused); },
+      name() { return MUSIC_NAME[scene] || ''; },
+      /* 内部使用（unlock 回调） */
+      _playNow: playNow,
+    };
+  })();
+
   /* ---------- 事件监听：一次性手势解锁 ---------- */
   function bindUnlock() {
     const handler = () => { unlock(); };
@@ -233,16 +394,25 @@ window.Sound = (function () {
     play,
     unlock,
     bgm,
+    music,
     setEnabled(b) {
       _enabled = !!b;
-      if (!_enabled) bgm.stop();
+      if (!_enabled) {
+        bgm.stop();
+        music.stop();          // 关闭总开关时一并停掉 BGM
+      } else if (_pendingScene) {
+        music.play(_pendingScene);   // 重新开启时续上之前的场景
+      }
     },
     setVolume(n) {
       _volume = Math.max(0, Math.min(1, Number(n) || 0));
       try { if (master) master.gain.value = _volume; } catch (e) {}
     },
+    setMusicVolume(n) { music.setVolume(n); },
+    getMusicVolume() { return music.getVolume(); },
     isEnabled() { return _enabled; },
     getVolume() { return _volume; },
+    isUnlocked() { return unlocked; },
     /* 供设置变更后刷新内存配置 */
     reloadConfig() { _cfgRead = false; readConfig(); _cfgRead = true; },
   };
