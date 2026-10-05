@@ -1,0 +1,595 @@
+/* ============================================================
+   剑与丹 · 样式（水墨仙侠 · 浅色主题）
+   ============================================================ */
+:root{
+  --ink:#2b2b2b;
+  --ink-2:#4a4a4a;
+  --ink-3:#7a7a7a;
+  --paper:#f7f5ef;
+  --paper-2:#fffefb;
+  --paper-3:#efece3;
+  --line:#ddd7c8;
+  --line-2:#c9c1ad;
+  --gold:#b08d3f;
+  --gold-2:#d4af5a;
+  --blue:#5b8dd6;
+  --red:#b9424a;
+  --green:#5f8f5a;
+  --purple:#8b6fb5;
+  --shadow:0 2px 12px rgba(80,70,50,.08);
+  --shadow-lg:0 8px 36px rgba(80,70,50,.14);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:"Songti SC","STSong","SimSun","Noto Serif SC",serif;
+  background:var(--paper);
+  color:var(--ink);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+#app{width:100%;height:100vh;position:relative;overflow:hidden;}
+
+/* 背景纹理 */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse at 15% 10%, rgba(176,141,63,.055), transparent 55%),
+    radial-gradient(ellipse at 85% 85%, rgba(91,141,214,.05), transparent 55%),
+    repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.008) 2px,rgba(0,0,0,.008) 3px);
+}
+
+.screen{
+  position:absolute;inset:0;display:none;z-index:1;
+  animation:fade .35s ease;
+}
+.screen.active{display:flex;}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ============ 标题页 ============ */
+#screen-title{align-items:center;justify-content:center;}
+.title-inner{text-align:center;max-width:640px;padding:32px 24px;position:relative;}
+.title-ink{
+  position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+  width:320px;height:320px;border-radius:50%;
+  background:radial-gradient(circle,rgba(176,141,63,.1),transparent 70%);
+  pointer-events:none;
+}
+.game-title{
+  font-size:92px;font-weight:400;letter-spacing:14px;
+  color:var(--ink);text-indent:14px;
+  font-family:"STKaiti","KaiTi","Kaiti SC",serif;
+  text-shadow:2px 2px 0 rgba(176,141,63,.18);
+}
+.game-title .sep{font-size:44px;color:var(--gold);margin:0 6px;vertical-align:middle;}
+.game-sub{font-size:17px;color:var(--ink-2);letter-spacing:6px;margin-top:6px;text-indent:6px;}
+.game-quote{
+  font-size:14px;color:var(--ink-3);margin-top:34px;line-height:2;
+  font-style:italic;letter-spacing:.5px;
+}
+.title-btns{display:flex;gap:12px;justify-content:center;margin-top:44px;flex-wrap:wrap;}
+.title-cycle{margin-top:26px;font-size:13px;color:var(--ink-3);letter-spacing:2px;}
+.title-cycle b{color:var(--gold);font-size:16px;}
+.title-hint{margin-top:12px;font-size:12px;color:#a9a294;letter-spacing:1px;}
+
+/* ============ 按钮 ============ */
+.btn{
+  font-family:inherit;font-size:15px;letter-spacing:2px;
+  padding:11px 26px;border-radius:6px;cursor:pointer;
+  background:var(--paper-2);color:var(--ink-2);
+  border:1px solid var(--line-2);
+  transition:all .2s ease;
+  box-shadow:var(--shadow);
+}
+.btn:hover{background:#fff;border-color:var(--gold);color:var(--ink);transform:translateY(-1px);box-shadow:var(--shadow-lg);}
+.btn:active{transform:translateY(0);}
+.btn-primary{
+  background:linear-gradient(180deg,#fffdf7,#f3eddd);
+  border-color:var(--gold-2);color:#7a5f22;font-weight:600;
+}
+.btn-primary:hover{background:linear-gradient(180deg,#fffef9,#f7f0dd);}
+.btn-big{padding:15px 46px;font-size:17px;}
+.btn-danger{color:var(--red);border-color:#e0c4c4;}
+.btn-danger:hover{border-color:var(--red);background:#fdf6f6;}
+.btn span{font-size:12px;color:var(--ink-3);margin-left:6px;}
+
+/* ============ 游戏页 ============ */
+#screen-game{flex-direction:column;}
+.topbar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 20px;border-bottom:1px solid var(--line);
+  background:rgba(255,254,251,.85);backdrop-filter:blur(8px);
+  z-index:5;
+}
+.tb-left{display:flex;gap:10px;align-items:center;}
+.realm-badge{
+  font-size:13px;padding:4px 14px;border-radius:20px;
+  background:linear-gradient(135deg,#f5edda,#efe2c4);
+  color:#8a6d2a;border:1px solid #e2d3ae;letter-spacing:2px;
+}
+.faction-badge{font-size:12px;padding:4px 12px;border-radius:20px;background:var(--paper-3);color:var(--ink-3);letter-spacing:1px;}
+.tb-right{display:flex;gap:8px;}
+.mini-btn{
+  width:34px;height:34px;border-radius:8px;cursor:pointer;
+  background:var(--paper-2);border:1px solid var(--line);font-size:15px;
+  transition:.2s;
+}
+.mini-btn:hover{border-color:var(--gold);background:#fff;}
+
+.game-body{flex:1;display:flex;overflow:hidden;}
+
+/* 属性面板 */
+.panel-stats{
+  width:230px;flex-shrink:0;padding:20px 16px;
+  border-right:1px solid var(--line);
+  background:rgba(255,254,251,.6);
+  overflow-y:auto;
+}
+.stat-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+#stat-name{font-size:16px;letter-spacing:1px;color:var(--ink);}
+.stat-age{font-size:12px;color:var(--ink-3);}
+.stat-age b{font-size:17px;color:var(--gold);font-family:Georgia,serif;}
+.stat-place{font-size:11px;color:var(--ink-3);letter-spacing:1px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px dashed var(--line);}
+.bars{display:flex;flex-direction:column;gap:9px;}
+.bar-row{}
+.bar-top{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-2);margin-bottom:3px;letter-spacing:.5px;}
+.bar-top b{font-family:Georgia,serif;font-size:12.5px;color:var(--ink);}
+.bar-track{height:5px;background:var(--paper-3);border-radius:3px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s ease;}
+.affect-row{margin-top:20px;padding-top:14px;border-top:1px dashed var(--line);}
+.aff-line{font-size:12px;color:#c05a76;display:flex;justify-content:space-between;}
+/* 第七轮：已决裂角色 —— 去色处理，与在线的暧昧线做视觉区分 */
+.aff-line.aff-refused{color:var(--ink-3);text-decoration:line-through;text-decoration-thickness:1px;}
+
+/* 第九轮：婚后状态行（家财 / 心累 / 子女）—— 仅已婚时渲染，水墨配色 */
+.family-row{margin-top:16px;padding-top:12px;border-top:1px dashed var(--line);}
+.family-row:empty{display:none;}
+.fam-line{font-size:12px;color:var(--ink-2);display:flex;justify-content:space-between;line-height:1.7;}
+.fam-line.fam-stress{color:#b9424a;font-weight:600;}
+
+/* 主区域 */
+.panel-main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+.log{
+  flex:1;overflow-y:auto;padding:26px 30px 12px;
+  display:flex;flex-direction:column;gap:2px;
+  scroll-behavior:smooth;
+}
+.log::-webkit-scrollbar{width:6px;}
+.log::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px;}
+
+.entry{
+  font-size:15px;line-height:2;color:var(--ink-2);
+  letter-spacing:.4px;animation:slideIn .4s ease;
+  white-space:pre-wrap;
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.entry.sys{color:var(--gold);text-align:center;font-size:13px;letter-spacing:4px;margin:14px 0 6px;}
+.entry.narr{color:var(--ink-2);}
+.entry.talent{color:#8a6d2a;background:linear-gradient(90deg,rgba(176,141,63,.09),transparent);padding:4px 12px;border-left:2px solid var(--gold-2);}
+.entry.achieve{color:#8a6d2a;background:linear-gradient(90deg,rgba(212,175,90,.13),transparent);padding:4px 12px;border-left:2px solid var(--gold);font-size:13.5px;}
+.entry.diff{color:#5f8f5a;font-size:13px;letter-spacing:1px;}
+.entry.diff.bad{color:#b9424a;}
+.entry.title{
+  color:var(--ink);font-size:17px;letter-spacing:2px;
+  margin:18px 0 6px;padding-left:12px;border-left:3px solid var(--gold);
+  font-family:"STKaiti","KaiTi",serif;
+}
+.entry.choice{color:var(--blue);font-size:14px;}
+.entry.choice::before{content:"› ";}
+/* 婚姻事件标题（第四轮新增）：金色 + ❦ 姻缘标识 */
+.entry.title.marry{
+  color:#8a6d2a;border-left-color:#d4af5a;
+  background:linear-gradient(90deg,rgba(212,175,90,.16),transparent);
+  padding-top:6px;padding-bottom:6px;animation:marryIn .8s ease;
+}
+@keyframes marryIn{from{opacity:0;transform:translateX(-12px);}to{opacity:1;transform:none;}}
+
+/* 季节 / 年份徽章（第四轮新增） */
+.stat-season{display:flex;align-items:center;gap:8px;margin:-8px 0 16px;}
+.season-badge{
+  display:inline-block;min-width:20px;text-align:center;
+  padding:2px 9px;border-radius:20px;font-size:12px;letter-spacing:1px;
+  border:1px solid var(--line);color:var(--ink-2);background:var(--paper-2);
+}
+.season-badge.season-spring{color:#3b6d11;border-color:#97c459;background:#eaf3de;}
+.season-badge.season-summer{color:#854f0b;border-color:#ef9f27;background:#faeeda;}
+.season-badge.season-autumn{color:#633806;border-color:#ba7517;background:#f7ecd7;}
+.season-badge.season-winter{color:#185fa5;border-color:#85b7eb;background:#e6f1fb;}
+.season-year{font-size:11px;color:var(--ink-3);letter-spacing:.5px;}
+
+/* 选项区 */
+.choice-area{
+  padding:16px 30px 24px;border-top:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(247,245,239,.4),rgba(247,245,239,.9));
+}
+.choices{display:flex;flex-direction:column;gap:9px;}
+.choice-btn{
+  text-align:left;padding:13px 18px;border-radius:8px;cursor:pointer;
+  background:var(--paper-2);border:1px solid var(--line);
+  font-family:inherit;font-size:14.5px;color:var(--ink-2);
+  transition:.18s ease;letter-spacing:.5px;
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  box-shadow:var(--shadow);
+}
+.choice-btn:hover{border-color:var(--gold);background:#fff;transform:translateX(4px);color:var(--ink);}
+/* 婚姻选项（第七轮改版）：三个分支平权——不再用金色高亮/弱化暗示"正确"答案，
+   仅以左侧 2px 细色条做中性区分，保证"拒绝/暂缓"与"同意"同等可见、同等可点。 */
+.choice-btn.choice-marry{border-left:2px solid var(--line);}
+.choice-btn.choice-marry.marry-yes{border-left-color:#d4af5a;}
+.choice-btn.choice-marry.marry-no{border-left-color:#9aa4b2;}
+.choice-btn.choice-marry.marry-postpone{border-left-color:#b7a98a;}
+.choice-hint{font-size:11.5px;color:var(--ink-3);flex-shrink:0;letter-spacing:.5px;}
+.choice-btn:hover .choice-hint{color:var(--gold);}
+
+/* ============ 抽卡页 ============ */
+#screen-talent{align-items:center;justify-content:center;}
+.talent-inner{text-align:center;max-width:900px;padding:24px;}
+.screen-title{
+  font-size:30px;font-weight:400;letter-spacing:8px;color:var(--ink);
+  font-family:"STKaiti","KaiTi",serif;text-indent:8px;
+}
+.screen-desc{font-size:13px;color:var(--ink-3);margin:10px 0 30px;letter-spacing:1px;}
+.talent-cards{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-bottom:32px;}
+.talent-card{
+  width:200px;padding:22px 16px;border-radius:12px;
+  background:var(--paper-2);border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  animation:pop .45s cubic-bezier(.2,1.3,.5,1) backwards;
+}
+.talent-card:nth-child(2){animation-delay:.12s;}
+.talent-card:nth-child(3){animation-delay:.24s;}
+@keyframes pop{from{opacity:0;transform:scale(.86) translateY(14px)}to{opacity:1;transform:none}}
+.talent-card.r5{border-color:var(--gold-2);background:linear-gradient(180deg,#fffdf4,#faf3de);box-shadow:0 4px 26px rgba(176,141,63,.2);}
+.talent-card.r4{border-color:#c9b98a;}
+.tc-rarity{font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:8px;}
+.talent-card.r1 .tc-rarity,.talent-card.r2 .tc-rarity{color:var(--ink-3);}
+.talent-card.r3 .tc-rarity{color:var(--blue);}
+.tc-name{font-size:20px;letter-spacing:3px;color:var(--ink);margin-bottom:10px;font-family:"STKaiti","KaiTi",serif;}
+.tc-desc{font-size:12.5px;color:var(--ink-2);line-height:1.8;}
+.tc-eff{margin-top:12px;font-size:11.5px;color:#5f8f5a;letter-spacing:1px;}
+.tc-eff .neg{color:var(--red);}
+
+/* ============ 结局页 ============ */
+#screen-end{align-items:center;justify-content:center;}
+.end-inner{text-align:center;max-width:620px;padding:30px 26px;max-height:96vh;overflow-y:auto;}
+.end-rank{
+  font-size:64px;font-family:Georgia,serif;letter-spacing:4px;
+  color:var(--gold);line-height:1;margin-bottom:8px;
+  text-shadow:0 4px 20px rgba(176,141,63,.3);
+}
+.end-rank.S{color:#c07b2c;} .end-rank.A{color:var(--blue);}
+.end-rank.B{color:var(--purple);} .end-rank.C,.end-rank.D{color:var(--ink-3);}
+.end-name{font-size:34px;letter-spacing:10px;font-weight:400;margin-bottom:22px;text-indent:10px;font-family:"STKaiti","KaiTi",serif;}
+.end-desc{font-size:15px;line-height:2.1;color:var(--ink-2);letter-spacing:.5px;padding:0 10px;
+  border-left:2px solid var(--line-2);text-align:left;margin:0 auto 26px;font-style:italic;}
+.end-stats{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:20px;}
+.end-stat{font-size:12px;padding:6px 14px;border-radius:20px;background:var(--paper-3);color:var(--ink-2);letter-spacing:1px;}
+.end-stat b{color:var(--gold);font-family:Georgia,serif;}
+.end-ach{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:28px;min-height:20px;}
+.end-ach .tag{font-size:12px;padding:4px 12px;border-radius:6px;background:linear-gradient(135deg,#fdf6e3,#f5ead0);color:#8a6d2a;border:1px solid #e8dcbb;}
+.end-btns{display:flex;gap:12px;justify-content:center;}
+
+/* ============ 模态页 ============ */
+#screen-ach,#screen-history{align-items:center;justify-content:center;}
+.modal-inner{
+  width:92%;max-width:860px;max-height:88vh;padding:30px;
+  background:var(--paper-2);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--shadow-lg);overflow-y:auto;text-align:center;
+}
+.modal-inner .screen-title{margin-bottom:24px;}
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:26px;text-align:left;}
+.ach-item{
+  padding:14px;border-radius:10px;border:1px solid var(--line);
+  background:var(--paper);opacity:.45;transition:.2s;
+}
+.ach-item.on{opacity:1;border-color:var(--gold-2);background:linear-gradient(160deg,#fffdf5,#f9f2e0);}
+.ach-icon{font-size:22px;margin-bottom:6px;filter:grayscale(1);}
+.ach-item.on .ach-icon{filter:none;}
+.ach-name{font-size:14px;letter-spacing:1.5px;color:var(--ink);margin-bottom:4px;}
+.ach-desc{font-size:11.5px;color:var(--ink-3);line-height:1.7;}
+
+.history-list{display:flex;flex-direction:column;gap:12px;margin-bottom:26px;text-align:left;}
+.hist-item{
+  padding:16px 18px;border-radius:10px;border:1px solid var(--line);
+  background:var(--paper);
+}
+.hist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+.hist-cycle{font-size:13px;color:var(--gold);letter-spacing:1px;}
+.hist-end{font-size:15px;letter-spacing:2px;color:var(--ink);font-family:"STKaiti","KaiTi",serif;}
+.hist-rank{font-size:12px;padding:2px 10px;border-radius:12px;background:var(--paper-3);color:var(--ink-2);margin-left:8px;}
+.hist-meta{font-size:11.5px;color:var(--ink-3);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px;}
+.hist-events{font-size:12px;color:var(--ink-2);line-height:1.9;}
+.hist-events .ev{display:block;}
+.hist-events .ev::before{content:"· ";color:var(--gold);}
+.hist-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.hist-tags .tag{font-size:11px;padding:2px 9px;border-radius:5px;background:#fdf6e3;color:#8a6d2a;border:1px solid #ece0c2;}
+.history-btns{display:flex;gap:12px;justify-content:center;}
+.empty-hint{color:var(--ink-3);font-size:13px;padding:40px 0;letter-spacing:1px;}
+
+/* 死亡/特殊效果 */
+.entry.death{color:var(--red);text-align:center;font-size:16px;letter-spacing:3px;margin:16px 0;}
+
+/* 响应式 */
+@media(max-width:760px){
+  .game-title{font-size:62px;}
+  .panel-stats{width:150px;padding:14px 10px;}
+  .log{padding:18px 16px 8px;}
+  .choice-area{padding:12px 16px 18px;}
+  .entry{font-size:14px;}
+  .talent-card{width:150px;padding:16px 12px;}
+  .tc-name{font-size:17px;}
+  .end-name{font-size:26px;}
+}
+
+/* ============================================================
+   新增：设置面板 / CG 展示 / 三角色情感 / 结局 CG
+   ============================================================ */
+
+/* ---------- 设置面板 ---------- */
+.settings-inner{max-width:520px;width:92%;max-height:88vh;overflow-y:auto;}
+.cfg-group{margin:16px 0;text-align:left;}
+.cfg-label{display:block;font-size:14px;color:var(--ink);margin-bottom:6px;font-weight:600;letter-spacing:.03em;}
+.cfg-input{
+  width:100%;box-sizing:border-box;padding:9px 12px;font-size:14px;
+  font-family:inherit;color:var(--ink);
+  background:rgba(255,255,255,.7);
+  border:1px solid var(--line-2);border-radius:8px;outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+.cfg-input:focus{border-color:#b08d3f;box-shadow:0 0 0 2px rgba(176,141,63,.15);}
+.cfg-tip{font-size:11.5px;color:var(--ink-3,#8a8578);margin:5px 0 0;line-height:1.5;}
+.cfg-sub{margin-top:12px;padding-left:14px;border-left:2px solid var(--line);}
+.cfg-sublabel{display:block;font-size:12.5px;color:var(--ink-2,#5f5a4e);margin:10px 0 5px;}
+.cfg-btns{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap;}
+.cfg-hint{font-size:12px;opacity:.75;}
+
+/* ---------- CG 展示层 ---------- */
+.cg-layer{
+  position:absolute;inset:0;z-index:30;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+}
+.cg-card{
+  position:relative;pointer-events:auto;cursor:pointer;
+  width:min(300px,66%);max-height:82%;
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 12px 40px rgba(40,30,10,.35);
+  background:var(--paper,#f6f2e8);
+  border:1px solid var(--line-2);
+  animation:cgIn .5s cubic-bezier(.2,.8,.3,1);
+  transition:opacity .8s, transform .8s;
+}
+.cg-card.fade{opacity:0;transform:scale(.96);}
+.cg-img{width:100%;display:block;}
+@keyframes cgIn{
+  from{opacity:0;transform:translateY(16px) scale(.97);}
+  to{opacity:1;transform:translateY(0) scale(1);}
+}
+.cg-placeholder{
+  position:relative;width:100%;aspect-ratio:2/3;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#f7f3e9 0%,#eae4d5 100%);
+  padding:20px;box-sizing:border-box;text-align:center;
+}
+.cg-ph-ink{
+  position:absolute;inset:8%;border-radius:8px;
+  border:1px dashed rgba(120,100,60,.35);
+}
+.cg-ph-label{font-size:15px;color:#8a6d2a;letter-spacing:.08em;margin-bottom:8px;font-weight:600;}
+.cg-ph-note{font-size:11px;color:#9a9282;line-height:1.6;}
+
+/* ---------- 结局 CG ---------- */
+.end-cg{margin-bottom:18px;}
+.end-cg-img{
+  width:min(240px,60%);border-radius:10px;
+  box-shadow:0 8px 30px rgba(40,30,10,.3);
+  border:1px solid var(--line-2);
+}
+
+/* ---------- 三角色情感行 ---------- */
+.aff-line + .aff-line{margin-top:6px;}
+
+/* ============================================================
+   第五轮新增 · 反馈层（O2/O3/O4/O5/O11 + 新手引导 O6）
+   ============================================================ */
+
+/* ---------- O2：数值变化飘字 ---------- */
+.bar-row{transition:background .2s;}
+.float-delta{
+  position:absolute;right:6px;top:-2px;
+  font-size:13px;font-weight:700;pointer-events:none;
+  animation:floatUp .9s ease-out forwards;z-index:5;
+}
+.float-delta.up{color:var(--gold);text-shadow:0 1px 4px rgba(176,141,63,.4);}
+.float-delta.down{color:var(--red);text-shadow:0 1px 4px rgba(185,66,74,.35);animation-name:floatDown;}
+@keyframes floatUp{
+  0%{opacity:0;transform:translateY(4px) scale(.9);}
+  25%{opacity:1;transform:translateY(-2px) scale(1.06);}
+  100%{opacity:0;transform:translateY(-22px) scale(1);}
+}
+@keyframes floatDown{
+  0%{opacity:0;transform:translateY(-4px) scale(.9);}
+  25%{opacity:1;transform:translateY(2px) scale(1.06);}
+  100%{opacity:0;transform:translateY(20px) scale(1);}
+}
+
+/* ---------- O2：属性条闪动 ---------- */
+.bar-flash-up{animation:barFlashUp .65s ease-out;}
+.bar-flash-down{animation:barFlashDown .65s ease-out;}
+@keyframes barFlashUp{
+  0%{background:rgba(176,141,63,.28);}
+  100%{background:transparent;}
+}
+@keyframes barFlashDown{
+  0%{background:rgba(185,66,74,.24);}
+  100%{background:transparent;}
+}
+
+/* ---------- O4：寿元告急三档 ---------- */
+.bar-row.shou-caution .bar-top b{color:#a8761f;}
+.bar-row.shou-caution{border-left:3px solid rgba(200,150,50,.6);padding-left:6px;}
+.bar-row.shou-danger .bar-top b{color:var(--red);}
+.bar-row.shou-danger{border-left:3px solid rgba(185,66,74,.7);padding-left:6px;animation:shouBreathe 1.6s ease-in-out infinite;}
+.bar-row.shou-critical .bar-top b{color:#8f1f28;}
+.bar-row.shou-critical{border-left:3px solid rgba(143,31,40,.9);padding-left:6px;animation:shouBreathe .8s ease-in-out infinite;}
+@keyframes shouBreathe{
+  0%,100%{background:rgba(185,66,74,0);}
+  50%{background:rgba(185,66,74,.14);}
+}
+
+/* ---------- O3：破境全屏光效 ---------- */
+.fx-breakthrough{
+  position:fixed;inset:0;z-index:200;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .6s ease;
+}
+.fx-breakthrough.fade{opacity:0;}
+.bt-ring{
+  position:absolute;width:40px;height:40px;border-radius:50%;
+  border:3px solid rgba(212,175,90,.9);
+  box-shadow:0 0 30px rgba(212,175,90,.7),inset 0 0 30px rgba(212,175,90,.35);
+  animation:btRing 1.1s ease-out forwards;
+}
+@keyframes btRing{
+  0%{transform:scale(.2);opacity:0;}
+  20%{opacity:1;}
+  100%{transform:scale(22);opacity:0;}
+}
+.bt-text{
+  position:relative;font-size:38px;letter-spacing:8px;font-weight:600;
+  color:var(--gold);text-shadow:0 0 24px rgba(212,175,90,.9),0 2px 8px rgba(120,90,30,.5);
+  animation:btText 1.1s ease-out forwards;
+}
+@keyframes btText{
+  0%{opacity:0;transform:scale(.6);letter-spacing:2px;}
+  30%{opacity:1;transform:scale(1.08);}
+  70%{opacity:1;transform:scale(1);}
+  100%{opacity:0;transform:scale(1.05) translateY(-10px);}
+}
+
+/* ---------- O5：事件标题入场分级 ---------- */
+.entry.title{font-weight:600;}
+.entry.title.important{
+  animation:titleImportant .5s ease-out;
+  color:var(--ink);
+  border-left:3px solid var(--gold);
+  padding-left:8px;
+  background:linear-gradient(90deg,rgba(176,141,63,.1),transparent 70%);
+}
+@keyframes titleImportant{
+  0%{opacity:0;transform:translateX(-14px);}
+  100%{opacity:1;transform:none;}
+}
+.entry.title.marry{
+  animation:titleMarry .7s cubic-bezier(.2,.9,.3,1.2);
+  color:#8a5a1a;
+  font-size:1.16em;
+  text-shadow:0 0 12px rgba(212,175,90,.9),0 1px 0 rgba(255,255,255,.6);
+  border-left:3px solid var(--gold-2);
+  padding-left:9px;
+  background:linear-gradient(90deg,rgba(212,175,90,.2),transparent 75%);
+}
+@keyframes titleMarry{
+  0%{opacity:0;transform:scale(.82);letter-spacing:6px;}
+  55%{opacity:1;transform:scale(1.06);letter-spacing:2px;}
+  100%{opacity:1;transform:scale(1);letter-spacing:normal;}
+}
+
+/* ---------- O11：结局庆祝粒子 ---------- */
+.celebrate-layer{
+  position:fixed;inset:0;z-index:300;pointer-events:none;overflow:hidden;
+}
+.celebrate-layer span{
+  position:absolute;top:-20px;font-size:16px;color:var(--gold-2);
+  text-shadow:0 0 10px rgba(212,175,90,.9);
+  animation-name:celebrateFall;animation-timing-function:linear;animation-fill-mode:forwards;
+}
+@keyframes celebrateFall{
+  0%{opacity:0;transform:translateY(0) rotate(0deg);}
+  10%{opacity:1;}
+  100%{opacity:0;transform:translateY(105vh) rotate(360deg);}
+}
+
+/* ---------- O6：新手引导 ---------- */
+.onboard-mask{
+  position:fixed;inset:0;z-index:400;
+  background:rgba(30,26,18,.42);
+  animation:fade .3s ease;
+}
+.onboard-tip{
+  position:fixed;z-index:401;
+  background:var(--paper-2);
+  border:1px solid var(--line-2);
+  border-radius:10px;
+  box-shadow:var(--shadow-lg);
+  padding:16px 18px;
+  animation:pop .32s ease;
+}
+.onboard-tip.center{transform:translate(-50%,-50%);}
+.onboard-title{
+  font-size:17px;font-weight:600;color:var(--gold);
+  margin-bottom:8px;letter-spacing:.06em;
+}
+.onboard-text{font-size:13.5px;line-height:1.8;color:var(--ink-2);}
+.onboard-foot{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:14px;
+}
+.onboard-dots{display:flex;gap:6px;}
+.onboard-dots i{
+  width:7px;height:7px;border-radius:50%;background:var(--line-2);
+  transition:background .2s;
+}
+.onboard-dots i.on{background:var(--gold);}
+.onboard-btns{display:flex;gap:8px;}
+.onboard-btn{
+  font-family:inherit;font-size:13px;cursor:pointer;
+  padding:6px 16px;border-radius:6px;
+  border:1px solid var(--gold);background:var(--gold);color:#fff;
+  transition:opacity .15s;
+}
+.onboard-btn:hover{opacity:.88;}
+.onboard-btn.ghost{background:transparent;color:var(--ink-3);border-color:var(--line-2);}
+.onboard-hl{
+  position:relative;z-index:402;
+  box-shadow:0 0 0 3px rgba(212,175,90,.85),0 0 24px rgba(212,175,90,.7);
+  border-radius:8px;
+  transition:box-shadow .25s;
+}
+
+/* ---------- O7：境界进度条 ---------- */
+.realm-progress{margin-top:6px;}
+.rp-label{font-size:11.5px;color:var(--ink-3);margin-bottom:4px;}
+.rp-label b{color:var(--gold);font-weight:600;}
+.rp-track{height:5px;border-radius:3px;background:var(--paper-3);overflow:hidden;}
+.rp-fill{
+  height:100%;border-radius:3px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-2));
+  transition:width .4s ease;
+}
+
+/* ---------- O7：属性释义卡 ---------- */
+.attr-explain{
+  position:fixed;inset:0;z-index:350;
+  background:rgba(30,26,18,.32);
+  display:flex;align-items:center;justify-content:center;
+  animation:fade .2s ease;
+}
+.ae-card{
+  background:var(--paper-2);
+  border:1px solid var(--line-2);
+  border-radius:12px;
+  box-shadow:var(--shadow-lg);
+  padding:20px 24px;max-width:min(360px,84vw);
+  animation:pop .28s ease;
+}
+.ae-title{
+  font-size:17px;font-weight:600;color:var(--ink);
+  margin-bottom:10px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+}
+.ae-val{font-size:12px;color:var(--gold);font-weight:500;}
+.ae-desc{font-size:13.5px;line-height:1.8;color:var(--ink-2);}
+.ae-hint{
+  font-size:12.5px;line-height:1.7;color:var(--ink-3);
+  margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);
+}
