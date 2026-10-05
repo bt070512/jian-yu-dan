@@ -1,0 +1,64 @@
+{
+  "$schema": "剑与丹·去重规则 v1",
+  "_comment": "三层去重机制：①周目永久（usedEvents）②年度复用（usedSeasons）③事件内自锁（usedFlag）。运行时通过 config-data.js 内联进 window.GAME_CONFIG.dedup 读取。",
+
+  "seasonEventPolicy": {
+    "_comment": "季节事件去重策略。默认 once_per_year：同一季节事件在本年度触发后，当年不再出现，跨年自动恢复。",
+    "mode": "once_per_year",
+    "supportedModes": {
+      "once_per_year": "当年触发过一次后本年度不再出现，进入新年（走完冬）时清空 usedSeasons，可再次触发",
+      "once": "整个周目只触发一次（写入 usedEvents）",
+      "repeat": "不占位，可无限重复（日常事件）"
+    }
+  },
+
+  "layers": [
+    {
+      "name": "usedEvents",
+      "scope": "run",
+      "field": "s.usedEvents",
+      "description": "周目内永久去重。非 repeat、非 once_per_year 的事件触发后写入，本存档周期内不再出现。",
+      "clearedBy": "newLife"
+    },
+    {
+      "name": "usedSeasons",
+      "scope": "year",
+      "field": "s.usedSeasons",
+      "description": "年度去重。once_per_year 的季节事件触发后写入，走完冬（季节轮回到春）时清空。",
+      "clearedBy": "seasonRollover(走完冬)"
+    },
+    {
+      "name": "charFlags",
+      "scope": "run",
+      "field": "s.charFlags",
+      "description": "事件内自锁。用于角色线/婚姻等需要精细控制的场景（如 *_met / *_final / *_married_ready / marriageDone）。",
+      "clearedBy": "newLife"
+    }
+  ],
+
+  "priorityTiers": {
+    "_comment": "抽取优先级分档（drawEvent 先按 priority 降序取最高档，再在该档内加权随机）。",
+    "tiers": [
+      { "priority": 900, "name": "marriage", "description": "婚姻特殊事件（好感 100）——必然优先于普通事件" },
+      { "priority": 500, "name": "mainStory", "description": "核心剧情强触发" },
+      { "priority": 100, "name": "character", "description": "角色情感事件（weight>=8 的核心角色事件）" },
+      { "priority": 0,   "name": "seasonal", "description": "季节事件（默认档）" },
+      { "priority": -100, "name": "daily", "description": "日常 repeat 事件（最低档）" }
+    ]
+  },
+
+  "fallback": {
+    "_comment": "候选池耗尽时的三级兜底策略。",
+    "levels": [
+      { "level": 1, "name": "generalPool", "description": "回落到通用事件池（place='any' 且未被去重的事件）" },
+      { "level": 2, "name": "repeatPool", "description": "回落到可重复事件（repeat:true）" },
+      { "level": 3, "name": "idle", "description": "返回 idle，由 UI 给出「岁月流转」叙述" }
+    ]
+  },
+
+  "validation": {
+    "duplicateId": { "policy": "block", "message": "事件 id 全局唯一，重复 id 在测试中报错。" },
+    "seasonCoverage": { "policy": "warn", "message": "每季事件数少于 12 时在测试中告警。" },
+    "emptyChoices": { "policy": "block", "message": "事件 choices 为空在测试中报错。" }
+  }
+}
