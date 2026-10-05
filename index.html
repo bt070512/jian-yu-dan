@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 防缓存（第九轮补丁）：线上部署无 Cache-Control，浏览器可能启发式缓存旧版资源，
+     导致「打开空白 / 新旧文件混用」。以下三行 + 资源 ?v= 版本串共同保证拿到最新版本。 -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>剑与丹 · 修仙人生重开模拟器</title>
+<link rel="stylesheet" href="style.css?v=20261005e">
+</head>
+<body>
+<div id="app">
+
+  <!-- ========== 标题页 ========== -->
+  <section id="screen-title" class="screen active">
+    <div class="title-inner">
+      <div class="title-ink"></div>
+      <h1 class="game-title">剑<span class="sep">与</span>丹</h1>
+      <p class="game-sub">修仙人生重开模拟器</p>
+      <p class="game-quote">「在心爱的姑娘面前出剑吟诗，多有风骨，多帅啊。」</p>
+      <div class="title-btns">
+        <button class="btn btn-primary" id="btn-start">开始新的一世</button>
+        <button class="btn" id="btn-ach">成就 <span id="ach-count">0/20</span></button>
+        <button class="btn" id="btn-history">周目记录 <span id="run-count">0</span></button>
+        <button class="btn" id="btn-settings">设置</button>
+      </div>
+      <p class="title-cycle">轮回第 <b id="cycle-num">1</b> 世</p>
+      <p class="title-hint">每次行动做出选择，不同的选择将走向不同的结局</p>
+      <p class="title-hint cfg-hint">可在「设置」中自定义主角姓名、AI 参数（性格 / 对话风格 / 剧情倾向）与难度</p>
+    </div>
+  </section>
+
+  <!-- ========== 游戏页 ========== -->
+  <section id="screen-game" class="screen">
+    <header class="topbar">
+      <div class="tb-left">
+        <span class="realm-badge" id="realm-badge">凡俗之身</span>
+        <span class="faction-badge" id="faction-badge"></span>
+      </div>      <div class="tb-right">
+        <button class="mini-btn" id="btn-ach2">🏆</button>
+        <button class="mini-btn" id="btn-menu">☰</button>
+      </div>
+    </header>
+
+    <div class="game-body">
+      <!-- 属性面板 -->
+      <aside class="panel-stats">
+        <div class="stat-head">
+          <span id="stat-name">无名</span>
+          <span class="stat-age"><b id="stat-age">12</b> 岁</span>
+        </div>
+        <div class="stat-place" id="stat-place">青石镇 · 中州</div>
+        <div class="realm-progress" id="realm-progress"></div>
+        <div class="stat-season" id="stat-season"></div>
+        <div class="bars" id="bars"></div>
+        <div class="affect-row" id="affect-row"></div>
+        <div class="family-row" id="family-row"></div>
+      </aside>
+
+      <!-- 主区域 -->
+      <main class="panel-main">
+        <div class="cg-layer" id="cg-layer"></div>
+        <div class="log" id="log"></div>
+
+        <div class="choice-area" id="choice-area">
+          <button class="btn btn-primary btn-big" id="btn-act">向前一步</button>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <!-- ========== 抽卡页（天赋） ========== -->
+  <section id="screen-talent" class="screen">
+    <div class="talent-inner">
+      <h2 class="screen-title">先天禀赋</h2>
+      <p class="screen-desc">命运给了你三样东西，它们将影响这一世的走向</p>
+      <div class="talent-cards" id="talent-cards"></div>
+      <button class="btn btn-primary btn-big" id="btn-talent-ok">入世</button>
+    </div>
+  </section>
+
+  <!-- ========== 结局页 ========== -->
+  <section id="screen-end" class="screen">
+    <div class="end-inner">
+      <div class="end-cg" id="end-cg"></div>
+      <div class="end-rank" id="end-rank">S</div>
+      <h2 class="end-name" id="end-name">结局</h2>
+      <p class="end-desc" id="end-desc"></p>
+      <div class="end-stats" id="end-stats"></div>
+      <div class="end-ach" id="end-ach"></div>
+      <div class="end-btns">
+        <button class="btn btn-primary" id="btn-again">再开一世</button>
+        <button class="btn" id="btn-end-history">查看周目记录</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 成就页 ========== -->
+  <section id="screen-ach" class="screen">
+    <div class="modal-inner">
+      <h2 class="screen-title">成就</h2>
+      <div class="ach-grid" id="ach-grid"></div>
+      <button class="btn" id="btn-ach-close">返回</button>
+    </div>
+  </section>
+
+  <!-- ========== 周目记录页 ========== -->
+  <section id="screen-history" class="screen">
+    <div class="modal-inner">
+      <h2 class="screen-title">周目记录</h2>
+      <div class="history-list" id="history-list"></div>
+      <div class="history-btns">
+        <button class="btn" id="btn-history-close">返回</button>
+        <button class="btn btn-danger" id="btn-reset">清空轮回</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 设置页 ========== -->
+  <section id="screen-settings" class="screen">
+    <div class="modal-inner settings-inner">
+      <h2 class="screen-title">设置</h2>
+      <p class="screen-desc">配置将在每次开启新周目时生效；旧存档不受影响</p>
+
+      <div class="cfg-group">
+        <label class="cfg-label">主角姓名</label>
+        <input type="text" id="cfg-name" class="cfg-input" maxlength="12" placeholder="留空则为「无名」">
+        <p class="cfg-tip">默认值：空（游戏内显示为「无名」/「你」）</p>
+      </div>
+
+      <div class="cfg-group">
+        <label class="cfg-label">难度</label>
+        <select id="cfg-diff" class="cfg-input"></select>
+        <p class="cfg-tip">默认：修行（标准）。难度影响修为成长速度、寿元门槛与开局福缘</p>
+      </div>
+
+      <div class="cfg-group">
+        <label class="cfg-label">剧情倾向</label>
+        <select id="cfg-tendency" class="cfg-input"></select>
+        <p class="cfg-tip">默认：均衡。倾向会为对应类型的事件加权（情缘倾向还会放大好感增益）</p>
+      </div>
+
+      <div class="cfg-group">
+        <label class="cfg-label"><input type="checkbox" id="cfg-sound-on"> 启用音效</label>
+        <p class="cfg-tip">默认：开启。全部音色由浏览器实时合成，无需下载音频文件</p>
+        <div class="cfg-sub">
+          <label class="cfg-sublabel">音量</label>
+          <input type="range" id="cfg-sound-vol" class="cfg-input" min="0" max="1" step="0.05" value="0.6">
+        </div>
+      </div>
+
+      <div class="cfg-group cfg-ai">
+        <label class="cfg-label"><input type="checkbox" id="cfg-ai-on"> 启用 AI 叙事</label>
+        <p class="cfg-tip">默认：关闭（关闭时使用内置文案，游戏完全离线可玩）</p>
+
+        <div class="cfg-sub">
+          <label class="cfg-sublabel">角色性格（AI 语气）</label>
+          <select id="cfg-personality" class="cfg-input"></select>
+
+          <label class="cfg-sublabel">对话风格</label>
+          <select id="cfg-style" class="cfg-input"></select>
+
+          <label class="cfg-sublabel">API 地址</label>
+          <input type="text" id="cfg-endpoint" class="cfg-input" placeholder="https://api.openai.com/v1/chat/completions">
+
+          <label class="cfg-sublabel">API Key</label>
+          <input type="password" id="cfg-key" class="cfg-input" placeholder="sk-...">
+
+          <label class="cfg-sublabel">模型</label>
+          <input type="text" id="cfg-model" class="cfg-input" placeholder="gpt-4o-mini">
+        </div>
+      </div>
+
+      <div class="cfg-btns">
+        <button class="btn btn-primary" id="btn-cfg-save">保存</button>
+        <button class="btn" id="btn-cfg-reset">恢复默认</button>
+        <button class="btn" id="btn-cfg-close">返回</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="data.js?v=20261005e"></script>
+<script src="config.js?v=20261005e"></script>
+<script src="config-data.js?v=20261005e"></script>
+<script src="audio.js?v=20261005e"></script>
+<script src="season.js?v=20261005e"></script>
+<script src="characters.js?v=20261005e"></script>
+<script src="events.js?v=20261005e"></script>
+<script src="events-chars.js?v=20261005e"></script>
+<script src="engine.js?v=20261005e"></script>
+<script src="ai.js?v=20261005e"></script>
+<script src="onboarding.js?v=20261005e"></script>
+<script src="ui.js?v=20261005e"></script>
+</body>
+</html>
