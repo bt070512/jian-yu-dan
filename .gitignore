@@ -9,6 +9,7 @@ node_modules/
 dist/
 build/
 *.zip
+jian-yu-dan.zip
 
 # 编辑器/系统
 .vscode/
