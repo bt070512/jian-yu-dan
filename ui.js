@@ -32,6 +32,33 @@ const UI = {
     if ($('#btn-cfg-reset')) $('#btn-cfg-reset').onclick = () => this.resetSettings();
     if ($('#btn-cfg-close')) $('#btn-cfg-close').onclick = () => this.showScreen('screen-title');
     if ($('#btn-cfg-reset')) this.fillSettings();   // 预填一次
+
+    // 第十一轮：音量滑条实时预览（拖动即生效，无需保存）
+    // 注：加 addEventListener 存在性判断，兼容最小 DOM stub / 老浏览器
+    const bindInput = (sel, fn) => {
+      const el = $(sel);
+      if (el && typeof el.addEventListener === 'function') el.addEventListener('input', fn);
+      return el;
+    };
+    const mv = bindInput('#cfg-music-vol', () => {
+      if (window.Sound && Sound.setMusicVolume) Sound.setMusicVolume(Number($('#cfg-music-vol').value) || 0);
+    });
+    const sv = bindInput('#cfg-sound-vol', () => {
+      if (window.Sound) Sound.setVolume(Number($('#cfg-sound-vol').value) || 0);
+    });
+    const so = bindInput('#cfg-sound-on', () => {
+      if (window.Sound) Sound.setEnabled(so.checked);
+      if ($('#cfg-music-name') && Sound.music) $('#cfg-music-name').textContent = Sound.music.name() || '—';
+    });
+    // change 事件（复选框用 change 更准确）
+    const so2 = $('#cfg-sound-on');
+    if (so2 && typeof so2.addEventListener === 'function') {
+      so2.addEventListener('change', () => {
+        if (window.Sound) Sound.setEnabled(so2.checked);
+        if ($('#cfg-music-name') && Sound.music) $('#cfg-music-name').textContent = Sound.music.name() || '—';
+      });
+    }
+
     $('#btn-reset').onclick = () => {
       if (confirm('确定要清空所有轮回记录与成就吗？此操作不可撤销。')) {
         resetMeta();
@@ -78,6 +105,11 @@ const UI = {
     // 第五轮 O10：音效开关与音量
     if ($('#cfg-sound-on')) $('#cfg-sound-on').checked = (c.sound ? c.sound.enabled !== false : true);
     if ($('#cfg-sound-vol')) $('#cfg-sound-vol').value = (c.sound && typeof c.sound.volume === 'number') ? c.sound.volume : 0.6;
+    // 第十一轮：BGM 音量
+    if ($('#cfg-music-vol')) $('#cfg-music-vol').value = (c.sound && typeof c.sound.musicVolume === 'number') ? c.sound.musicVolume : 0.35;
+    if ($('#cfg-music-name') && window.Sound && Sound.music) {
+      $('#cfg-music-name').textContent = Sound.music.name() || '—';
+    }
   },
   saveSettings() {
     if (typeof GameConfig === 'undefined') return;
@@ -95,11 +127,14 @@ const UI = {
     c.sound = c.sound || { enabled: true, volume: 0.6 };
     if ($('#cfg-sound-on')) c.sound.enabled = $('#cfg-sound-on').checked;
     if ($('#cfg-sound-vol')) c.sound.volume = Math.max(0, Math.min(1, Number($('#cfg-sound-vol').value) || 0));
+    // 第十一轮：BGM 音量
+    if ($('#cfg-music-vol')) c.sound.musicVolume = Math.max(0, Math.min(1, Number($('#cfg-music-vol').value) || 0));
     GameConfig.saveConfig(c);
     if (typeof AI !== 'undefined' && AI.syncConfig) AI.syncConfig(c);   // 同步到 AI 模块
     if (window.Sound) {                                                 // 同步到音效模块
       Sound.setEnabled(c.sound.enabled);
       Sound.setVolume(c.sound.volume);
+      if (Sound.setMusicVolume) Sound.setMusicVolume(c.sound.musicVolume);
       Sound.reloadConfig();
     }
     this.showScreen('screen-title');
@@ -113,6 +148,16 @@ const UI = {
   showScreen(id) {
     $$('.screen').forEach(s => s.classList.remove('active'));
     $('#' + id).classList.add('active');
+    // 第十一轮：按界面驱动 BGM（标题页 / 游戏中 / 结局页 各一曲）
+    try {
+      if (window.Sound && Sound.music) {
+        if (id === 'screen-game') Sound.music.setScene('game');
+        else if (id === 'screen-end') Sound.music.setScene('ending');
+        else if (id === 'screen-title') Sound.music.setScene('title');
+        // 其余弹层（成就/记录/设置/抽卡）保持当前曲目不断
+        if ($('#cfg-music-name')) $('#cfg-music-name').textContent = Sound.music.name() || '—';
+      }
+    } catch (e) { /* 静默降级 */ }
   },
 
   /* ---------- 开新局 ---------- */
