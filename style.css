@@ -343,6 +343,9 @@ body::before{
 .cfg-sublabel{display:block;font-size:12.5px;color:var(--ink-2,#5f5a4e);margin:10px 0 5px;}
 .cfg-btns{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap;}
 .cfg-hint{font-size:12px;opacity:.75;}
+/* 第十一轮：BGM 当前曲目提示 */
+.cfg-music-now{margin-top:10px;font-size:11.5px;color:var(--ink-3,#8a8578);}
+.cfg-music-now span{color:#b08d3f;font-weight:600;}
 
 /* ---------- CG 展示层 ---------- */
 .cg-layer{
