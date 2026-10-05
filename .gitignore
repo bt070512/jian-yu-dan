@@ -1,0 +1,18 @@
+# WorkBuddy 本地数据（不纳入版本管理）
+.workbuddy/
+.wbapp_*.genie
+*.bak
+*.bak-*
+
+# 依赖与构建产物
+node_modules/
+dist/
+build/
+*.zip
+
+# 编辑器/系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
