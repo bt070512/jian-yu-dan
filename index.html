@@ -9,7 +9,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>剑与丹 · 修仙人生重开模拟器</title>
-<link rel="stylesheet" href="style.css?v=20261005e">
+<link rel="stylesheet" href="style.css?v=20261005f">
 </head>
 <body>
 <div id="app">
@@ -144,11 +144,14 @@
       </div>
 
       <div class="cfg-group">
-        <label class="cfg-label"><input type="checkbox" id="cfg-sound-on"> 启用音效</label>
-        <p class="cfg-tip">默认：开启。全部音色由浏览器实时合成，无需下载音频文件</p>
+        <label class="cfg-label"><input type="checkbox" id="cfg-sound-on"> 启用音效与背景音乐</label>
+        <p class="cfg-tip">默认：开启。音效由浏览器实时合成；背景音乐使用内置国风曲目，按场景自动切换</p>
         <div class="cfg-sub">
-          <label class="cfg-sublabel">音量</label>
+          <label class="cfg-sublabel">音效音量</label>
           <input type="range" id="cfg-sound-vol" class="cfg-input" min="0" max="1" step="0.05" value="0.6">
+          <label class="cfg-sublabel">音乐音量</label>
+          <input type="range" id="cfg-music-vol" class="cfg-input" min="0" max="1" step="0.05" value="0.35">
+          <p class="cfg-tip cfg-music-now">当前曲目：<span id="cfg-music-name">—</span></p>
         </div>
       </div>
 
@@ -184,17 +187,17 @@
 
 </div>
 
-<script src="data.js?v=20261005e"></script>
-<script src="config.js?v=20261005e"></script>
-<script src="config-data.js?v=20261005e"></script>
-<script src="audio.js?v=20261005e"></script>
-<script src="season.js?v=20261005e"></script>
-<script src="characters.js?v=20261005e"></script>
-<script src="events.js?v=20261005e"></script>
-<script src="events-chars.js?v=20261005e"></script>
-<script src="engine.js?v=20261005e"></script>
-<script src="ai.js?v=20261005e"></script>
-<script src="onboarding.js?v=20261005e"></script>
-<script src="ui.js?v=20261005e"></script>
+<script src="data.js?v=20261005f"></script>
+<script src="config.js?v=20261005f"></script>
+<script src="config-data.js?v=20261005f"></script>
+<script src="audio.js?v=20261005f"></script>
+<script src="season.js?v=20261005f"></script>
+<script src="characters.js?v=20261005f"></script>
+<script src="events.js?v=20261005f"></script>
+<script src="events-chars.js?v=20261005f"></script>
+<script src="engine.js?v=20261005f"></script>
+<script src="ai.js?v=20261005f"></script>
+<script src="onboarding.js?v=20261005f"></script>
+<script src="ui.js?v=20261005f"></script>
 </body>
 </html>
