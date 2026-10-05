@@ -1,0 +1,36 @@
+{
+  "//": "数值配平配置 —— 决定「一局能玩多久 / 能修到什么境界」",
+  "//时间模型": "1 年 = 4 次行动 = 4 步（春→夏→秋→冬）；走完冬即过一年",
+  "//修复史": "曾因 life/4 的无上限破境回血导致寿元净增数千点、游戏永不结束；现为「起始寿元 + 每年消耗 + 按比例递减回血 + 软上限」四者配平",
+  "//用途": "改这里的数值即可整体调整游戏节奏，无需修改引擎代码",
+
+  "enabled": true,
+
+  "startShou": 60,
+  "startAge": 12,
+  "shouPerYear": 4,
+  "growthMultiplier": 1.5,
+
+  "breakthroughHeal": {
+    "//": "破境回血：ratio = max(minHealRatio, baseHealRatio − realmIndex × healDecayPerRealm)",
+    "baseHealRatio": 0.25,
+    "healDecayPerRealm": 0.019,
+    "minHealRatio": 0.08,
+    "flatMin": 3
+  },
+
+  "shouCapMultiplier": 1.8,
+
+  "hardStepCap": 300,
+  "targetMinSteps": 120,
+  "targetMaxSteps": 200,
+
+  "//调参速查": {
+    "想让游戏更长": "调小 shouPerYear，或调大 growthMultiplier / shouCapMultiplier",
+    "想让游戏更短": "调大 shouPerYear，或调小 shouCapMultiplier",
+    "想让境界更高": "调大 growthMultiplier",
+    "破境延寿更明显": "调大 baseHealRatio 或 shouCapMultiplier",
+    "破境完全不延寿": "把 shouCapMultiplier 设为 1.0",
+    "警告": "shouCapMultiplier 设到 3.0 以上可能重现「死不掉」问题，请配合 test-balance.js 验证"
+  }
+}
