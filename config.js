@@ -71,7 +71,8 @@ function defaultConfig() {
     // 音效（第五轮新增；缺省 = 开启、音量 0.6）—— 全部音色由 audio.js 实时合成，无素材文件
     sound: {
       enabled: true,
-      volume: 0.6,        // 0 ~ 1
+      volume: 0.6,        // 0 ~ 1  音效音量
+      musicVolume: 0.35,  // 0 ~ 1  背景音乐音量（BGM 用 resources/music/ 真实 mp3）
     },
     // 版本标记，便于后续迁移
     cfgVersion: 1,
@@ -99,6 +100,9 @@ function loadConfig() {
     if (typeof merged.sound.enabled !== 'boolean') merged.sound.enabled = true;
     if (typeof merged.sound.volume !== 'number' || isNaN(merged.sound.volume)) merged.sound.volume = 0.6;
     merged.sound.volume = Math.max(0, Math.min(1, merged.sound.volume));
+    // 第十一轮：BGM 独立音量（旧配置无该字段 → 回落默认 0.35）
+    if (typeof merged.sound.musicVolume !== 'number' || isNaN(merged.sound.musicVolume)) merged.sound.musicVolume = 0.35;
+    merged.sound.musicVolume = Math.max(0, Math.min(1, merged.sound.musicVolume));
     return merged;
   } catch (e) {
     return def;
